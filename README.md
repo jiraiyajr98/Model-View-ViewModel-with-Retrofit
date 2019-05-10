@@ -1,4 +1,4 @@
-# Model-View-ViewModel-with-Retrofit
+# Model View ViewModel with Retrofit
 
 ## Development Guide
 <https://developer.android.com/jetpack/docs/guide>
