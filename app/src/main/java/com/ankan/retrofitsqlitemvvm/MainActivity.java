@@ -16,10 +16,18 @@ import android.widget.Toast;
 
 import com.ankan.retrofitsqlitemvvm.Database.TestDBObject;
 import com.ankan.retrofitsqlitemvvm.RecyclerView.TestRecyclerAdapter;
+import com.ankan.retrofitsqlitemvvm.Retrofit.JsonPlaceHolderApi;
+import com.ankan.retrofitsqlitemvvm.Retrofit.Posts;
 import com.ankan.retrofitsqlitemvvm.ViewModel.TestViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -51,6 +59,46 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onChanged(@Nullable List<TestDBObject> testDBObjects) {
                 adapter.setList(testDBObjects);
+            }
+        });
+
+        createApiCall();
+
+    }
+
+    void createApiCall()
+    {
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://jsonplaceholder.typicode.com/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        JsonPlaceHolderApi jsonPlaceHolderApi = retrofit.create(JsonPlaceHolderApi.class);
+
+        Call<List<Posts>> call = jsonPlaceHolderApi.getPosts();
+
+        call.enqueue(new Callback<List<Posts>>() {
+            @Override
+            public void onResponse(Call<List<Posts>> call, Response<List<Posts>> response) {
+                if (!response.isSuccessful()) {
+                    Toast.makeText(MainActivity.this, "Error Receiving", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                List<Posts> posts = response.body();
+
+                if(posts != null)
+                for(Posts p: posts)
+                {
+                    testViewModel.insert(new TestDBObject(p.getTitle(),p.getBody(),String.valueOf(p.getId())));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Posts>> call, Throwable t) {
+
+                Toast.makeText(MainActivity.this, t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
 
